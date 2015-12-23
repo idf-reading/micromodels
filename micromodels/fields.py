@@ -1,5 +1,5 @@
 import datetime
-import PySO8601
+import PySO8601  ## parse any ISO 8601 date
 
 
 class BaseField(object):
@@ -11,7 +11,7 @@ class BaseField(object):
 
     """
     def __init__(self, source=None):
-        self.source = source
+        self.source = source  ## possible another source other than itself
 
     def populate(self, data):
         """Set the value or values wrapped by this field"""
@@ -115,9 +115,9 @@ class DateTimeField(BaseField):
             return None
 
         # don't parse data that is already native
-        if isinstance(self.data, datetime.datetime):
+        if isinstance(self.data, datetime.datetime):  ## check native python
             return self.data
-        elif self.format is None:
+        elif self.format is None:  ## default iso8601 format
             # parse as iso8601
             return PySO8601.parse(self.data)
         else:
@@ -133,11 +133,11 @@ class DateField(DateTimeField):
 
     def to_python(self):
         # don't parse data that is already native
-        if isinstance(self.data, datetime.date):
+        if isinstance(self.data, datetime.date):  ## overriding
             return self.data
-        
-        dt = super(DateField, self).to_python()
-        return dt.date()
+
+        dt = super(DateField, self).to_python()  ## dt for date shorthand
+        return dt.date()  ## overriding
 
 
 class TimeField(DateTimeField):
@@ -149,14 +149,15 @@ class TimeField(DateTimeField):
             return self.data
         elif self.format is None:
             # parse as iso8601
-            return PySO8601.parse_time(self.data).time()
+            return PySO8601.parse_time(self.data).time()  ## overriding
         else:
-            return datetime.datetime.strptime(self.data, self.format).time()
+            return datetime.datetime.strptime(self.data, self.format).time()  ## overriding
 
 
 class WrappedObjectField(BaseField):
     """Superclass for any fields that wrap an object"""
 
+    ## Need to pass class var
     def __init__(self, wrapped_class, related_name=None, **kwargs):
         self._wrapped_class = wrapped_class
         self._related_name = related_name
@@ -164,7 +165,7 @@ class WrappedObjectField(BaseField):
 
         BaseField.__init__(self, **kwargs)
 
-
+## Nested
 class ModelField(WrappedObjectField):
     """Field containing a model instance
 
@@ -215,7 +216,8 @@ class ModelField(WrappedObjectField):
     def to_serial(self, model_instance):
         return model_instance.to_dict(serial=True)
 
-
+## constructor takes class rather than instance
+## use when list contians dict
 class ModelCollectionField(WrappedObjectField):
     """Field containing a list of model instances.
 
@@ -263,6 +265,8 @@ class ModelCollectionField(WrappedObjectField):
         return [instance.to_dict(serial=True) for instance in model_instances]
 
 
+## instance of the field rather than class of the field
+## flat level
 class FieldCollectionField(BaseField):
     """Field containing a list of the same type of fields.
 
@@ -335,7 +339,8 @@ class FieldCollectionField(BaseField):
         def convert(item):
             self._instance.populate(item)
             return self._instance.to_python()
-        return [convert(item) for item in self.data or []]
+
+        return [convert(item) for item in self.data or []]  ## `or []`
 
     def to_serial(self, list_of_fields):
         return [self._instance.to_serial(data) for data in list_of_fields]

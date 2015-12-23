@@ -21,7 +21,7 @@ class Model(object):
         instance = Model()
         instance.age = 18
 
-    ``age`` is the key and ``18`` is the value.
+    ``age`` is the key and ``18`` is the value.  ## set the data
 
     First, the model checks if it has a field with a name matching the key.
 
@@ -52,9 +52,9 @@ class Model(object):
 
         '''
         def __init__(cls, name, bases, attrs):
-            cls._clsfields = {}
+            cls._clsfields = {}  ## put into special fields
             for key, value in attrs.iteritems():
-                if isinstance(value, BaseField):
+                if isinstance(value, BaseField):  ## filter BaseField
                     cls._clsfields[key] = value
                     delattr(cls, key)
 
@@ -73,6 +73,7 @@ class Model(object):
         instance.set_data(D, is_json=is_json)
         return instance
 
+    ## Class method
     @classmethod
     def from_kwargs(cls, **kwargs):
         '''This factory for :class:`Model` only takes keywork arguments.
@@ -80,18 +81,20 @@ class Model(object):
         set on the new :class:`Model` instance.
 
         '''
-        instance = cls()
+        instance = cls()   ## factory method
         instance.set_data(kwargs)
         return instance
 
     def set_data(self, data, is_json=False):
-        if is_json:
+        if is_json:  ## convert to dict
             data = json.loads(data)
-        for name, field in self._clsfields.iteritems():
+
+        for name, field in self._clsfields.iteritems():  ## itr _clsfields and then get from data dict
             key = field.source or name
             if key in data:
                 setattr(self, name, data.get(key))
 
+    ## overriding
     def __setattr__(self, key, value):
         if key in self._fields:
             field = self._fields[key]
@@ -103,6 +106,7 @@ class Model(object):
 
     @property
     def _fields(self):
+        ## return a dictionary with original fields and extra fields
         return dict(self._clsfields, **self._extra)
 
     def add_field(self, key, value, field):
@@ -112,7 +116,7 @@ class Model(object):
         reassigned without using this method.
 
         '''
-        self._extra[key] = field
+        self._extra[key] = field  ## init using setattr
         setattr(self, key, value)
 
 
@@ -135,4 +139,4 @@ class Model(object):
         relies on the :meth:`~micromodels.Model.to_dict` method.
 
         '''
-        return json.dumps(self.to_dict(serial=True))
+        return json.dumps(self.to_dict(serial=True))  ## dictionary-based
